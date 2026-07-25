@@ -3,7 +3,7 @@ import { lazy, Suspense, useState } from "react";
 import { X, MapPin, Clock, Users } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ClientOnly } from "@/components/ClientOnly";
-import { TYPE_COLOR, type IncidentType } from "@/components/IncidentPinMap";
+import { TYPE_COLOR, type IncidentType } from "@/lib/incident-types";
 const IncidentPinMap = lazy(() => import("@/components/IncidentPinMap").then((m) => ({ default: m.IncidentPinMap })));
 import { SuspectAvatar } from "@/components/SuspectAvatar";
 import { INCIDENT_PINS, SUSPECTS } from "@/lib/incidents-data";
