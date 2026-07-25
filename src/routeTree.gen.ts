@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ReportRouteImport } from './routes/report'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as IncidentsRouteImport } from './routes/incidents'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as EmergencyRouteImport } from './routes/emergency'
@@ -18,6 +19,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const ReportRoute = ReportRouteImport.update({
   id: '/report',
   path: '/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IncidentsRoute = IncidentsRouteImport.update({
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/emergency': typeof EmergencyRoute
   '/feed': typeof FeedRoute
   '/incidents': typeof IncidentsRoute
+  '/profile': typeof ProfileRoute
   '/report': typeof ReportRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/emergency': typeof EmergencyRoute
   '/feed': typeof FeedRoute
   '/incidents': typeof IncidentsRoute
+  '/profile': typeof ProfileRoute
   '/report': typeof ReportRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,28 @@ export interface FileRoutesById {
   '/emergency': typeof EmergencyRoute
   '/feed': typeof FeedRoute
   '/incidents': typeof IncidentsRoute
+  '/profile': typeof ProfileRoute
   '/report': typeof ReportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/emergency' | '/feed' | '/incidents' | '/report'
+  fullPaths:
+    | '/'
+    | '/emergency'
+    | '/feed'
+    | '/incidents'
+    | '/profile'
+    | '/report'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/emergency' | '/feed' | '/incidents' | '/report'
-  id: '__root__' | '/' | '/emergency' | '/feed' | '/incidents' | '/report'
+  to: '/' | '/emergency' | '/feed' | '/incidents' | '/profile' | '/report'
+  id:
+    | '__root__'
+    | '/'
+    | '/emergency'
+    | '/feed'
+    | '/incidents'
+    | '/profile'
+    | '/report'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +98,7 @@ export interface RootRouteChildren {
   EmergencyRoute: typeof EmergencyRoute
   FeedRoute: typeof FeedRoute
   IncidentsRoute: typeof IncidentsRoute
+  ProfileRoute: typeof ProfileRoute
   ReportRoute: typeof ReportRoute
 }
 
@@ -86,6 +109,13 @@ declare module '@tanstack/react-router' {
       path: '/report'
       fullPath: '/report'
       preLoaderRoute: typeof ReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/incidents': {
@@ -124,8 +154,19 @@ const rootRouteChildren: RootRouteChildren = {
   EmergencyRoute: EmergencyRoute,
   FeedRoute: FeedRoute,
   IncidentsRoute: IncidentsRoute,
+  ProfileRoute: ProfileRoute,
   ReportRoute: ReportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
