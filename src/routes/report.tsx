@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, MapPin, Send, AlertTriangle, Sparkles } from "lucide-react";
+import { CalendarIcon, MapPin, Send, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { SuspectAvatar, type SuspectFeatures } from "@/components/SuspectAvatar";
 import { Button } from "@/components/ui/button";
