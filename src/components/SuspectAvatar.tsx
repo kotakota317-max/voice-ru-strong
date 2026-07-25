@@ -1,14 +1,29 @@
 import { cn } from "@/lib/utils";
 
 export type SuspectFeatures = {
+  gender?: "male" | "female" | "unknown";
   hairColor?: "black" | "brown" | "blonde" | "gray" | "none";
   hairStyle?: "short" | "long" | "center-part" | "buzz" | "bald";
+  bangs?: "none" | "straight" | "swept" | "split";
+  faceShape?: "oval" | "round" | "square" | "long";
+  skinTone?: "light" | "medium" | "tan" | "dark";
+  eyes?: "small" | "average" | "large" | "narrow";
+  brows?: "thin" | "average" | "thick";
+  nose?: "small" | "average" | "large";
+  mouth?: "thin" | "average" | "full";
+  beard?: "none" | "stubble" | "goatee" | "full";
   headwear?: "none" | "black-cap" | "white-cap" | "hat";
   facewear?: "none" | "white-mask" | "black-mask" | "glasses" | "black-glasses" | "sunglasses";
   top?: "hoodie-navy" | "hoodie-black" | "suit" | "tshirt" | "jacket";
+  topColor?: "black" | "white" | "gray" | "navy" | "red" | "green";
+  bottom?: "jeans" | "slacks" | "shorts" | "skirt";
+  bottomColor?: "black" | "blue" | "gray" | "beige";
+  shoes?: "sneakers-white" | "sneakers-black" | "leather" | "boots";
   bag?: "none" | "black-backpack" | "shoulder-bag" | "handbag";
+  accessory?: "none" | "watch" | "earring" | "necklace";
   build?: "slim" | "average" | "large";
   height?: "short" | "average" | "tall";
+  ageGroup?: "teen" | "20s" | "30s" | "40s" | "50s" | "60plus";
 };
 
 const HAIR_COLORS: Record<string, string> = {
@@ -27,6 +42,22 @@ const TOP_COLORS: Record<string, string> = {
   jacket: "#374151",
 };
 
+const SKIN_TONES: Record<string, string> = {
+  light: "#f2c9a1",
+  medium: "#d9a271",
+  tan: "#b07a4d",
+  dark: "#7a4a2b",
+};
+
+const TOP_COLOR_OVERRIDES: Record<string, string> = {
+  black: "#111827",
+  white: "#f9fafb",
+  gray: "#6b7280",
+  navy: "#1e3a8a",
+  red: "#b91c1c",
+  green: "#166534",
+};
+
 export function SuspectAvatar({
   features = {},
   className,
@@ -37,15 +68,39 @@ export function SuspectAvatar({
   size?: number;
 }) {
   const {
+    gender = "unknown",
     hairColor = "black",
     hairStyle = "short",
+    bangs = "none",
+    faceShape = "oval",
+    skinTone = "light",
+    eyes = "average",
+    brows = "average",
+    nose = "average",
+    mouth = "average",
+    beard = "none",
     headwear = "none",
     facewear = "none",
     top = "tshirt",
+    topColor,
   } = features;
 
   const hairFill = HAIR_COLORS[hairColor] ?? "#111";
-  const topFill = TOP_COLORS[top] ?? "#e5e7eb";
+  const topFill = topColor ? TOP_COLOR_OVERRIDES[topColor] : TOP_COLORS[top] ?? "#e5e7eb";
+  const skinFill = SKIN_TONES[skinTone] ?? "#f2c9a1";
+
+  // face shape radii
+  const rx = faceShape === "round" ? 22 : faceShape === "square" ? 21 : faceShape === "long" ? 18 : 20;
+  const ry = faceShape === "long" ? 26 : faceShape === "round" ? 22 : 23;
+
+  // feature sizing
+  const eyeR = eyes === "small" ? 1.2 : eyes === "large" ? 2.4 : eyes === "narrow" ? 1.5 : 1.8;
+  const eyeStretch = eyes === "narrow" ? 0.5 : 1;
+  const browY = 40;
+  const browThick = brows === "thin" ? 1 : brows === "thick" ? 2.5 : 1.6;
+  const noseLen = nose === "small" ? 4 : nose === "large" ? 9 : 6;
+  const mouthW = mouth === "thin" ? 8 : mouth === "full" ? 14 : 11;
+  const mouthThick = mouth === "full" ? 2.4 : 1.2;
 
   return (
     <svg
@@ -62,10 +117,14 @@ export function SuspectAvatar({
       <path d="M10 100 C 15 78, 35 70, 50 70 C 65 70, 85 78, 90 100 Z" fill={topFill} />
 
       {/* neck */}
-      <rect x="43" y="60" width="14" height="12" fill="#e0b48a" />
+      <rect x="43" y="60" width="14" height="12" fill={skinFill} />
 
       {/* head */}
-      <ellipse cx="50" cy="45" rx="20" ry="23" fill="#f2c9a1" />
+      {faceShape === "square" ? (
+        <rect x={50 - rx} y={45 - ry} width={rx * 2} height={ry * 2} rx="6" fill={skinFill} />
+      ) : (
+        <ellipse cx="50" cy="45" rx={rx} ry={ry} fill={skinFill} />
+      )}
 
       {/* hair styles */}
       {hairStyle !== "bald" && hairStyle !== "buzz" && hairColor !== "none" && (
@@ -79,7 +138,7 @@ export function SuspectAvatar({
           {hairStyle === "center-part" && (
             <>
               <path d="M30 40 Q30 22, 50 22 Q70 22, 70 40 L66 32 Q58 28, 50 30 Q42 28, 34 32 Z" fill={hairFill} />
-              <rect x="49" y="24" width="2" height="10" fill="#f2c9a1" />
+              <rect x="49" y="24" width="2" height="10" fill={skinFill} />
             </>
           )}
         </>
@@ -88,12 +147,50 @@ export function SuspectAvatar({
         <path d="M32 38 Q32 26, 50 26 Q68 26, 68 38 Z" fill={hairFill} opacity="0.85" />
       )}
 
+      {/* bangs */}
+      {bangs !== "none" && hairColor !== "none" && (
+        <>
+          {bangs === "straight" && (
+            <path d="M32 32 Q50 30, 68 32 L68 40 Q50 38, 32 40 Z" fill={hairFill} />
+          )}
+          {bangs === "swept" && (
+            <path d="M32 32 Q40 26, 68 34 L64 40 Q46 38, 32 40 Z" fill={hairFill} />
+          )}
+          {bangs === "split" && (
+            <>
+              <path d="M32 32 Q40 30, 49 36 L46 40 L32 40 Z" fill={hairFill} />
+              <path d="M68 32 Q60 30, 51 36 L54 40 L68 40 Z" fill={hairFill} />
+            </>
+          )}
+        </>
+      )}
+
+      {/* brows */}
+      <line x1={38} y1={browY} x2={46} y2={browY} stroke="#111" strokeWidth={browThick} strokeLinecap="round" />
+      <line x1={54} y1={browY} x2={62} y2={browY} stroke="#111" strokeWidth={browThick} strokeLinecap="round" />
+
       {/* eyes */}
-      <circle cx="42" cy="46" r="1.8" fill="#111" />
-      <circle cx="58" cy="46" r="1.8" fill="#111" />
+      <ellipse cx="42" cy="46" rx={eyeR} ry={eyeR * eyeStretch} fill="#111" />
+      <ellipse cx="58" cy="46" rx={eyeR} ry={eyeR * eyeStretch} fill="#111" />
+
+      {/* nose */}
+      <path d={`M50 47 L${50 - noseLen / 3} ${47 + noseLen} Q50 ${47 + noseLen + 1} ${50 + noseLen / 3} ${47 + noseLen}`} stroke="#8b5a3c" strokeWidth="0.9" fill="none" strokeLinecap="round" />
 
       {/* mouth */}
-      <path d="M44 56 Q50 59, 56 56" stroke="#8b5a3c" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      <path d={`M${50 - mouthW / 2} 58 Q50 ${58 + mouthThick} ${50 + mouthW / 2} 58`} stroke="#8b5a3c" strokeWidth={mouthThick} fill="none" strokeLinecap="round" />
+
+      {/* beard */}
+      {beard === "stubble" && <ellipse cx="50" cy="58" rx="14" ry="6" fill="#111" opacity="0.18" />}
+      {beard === "goatee" && <path d="M46 60 Q50 66, 54 60 L53 64 Q50 67, 47 64 Z" fill={hairFill} />}
+      {beard === "full" && <path d="M32 52 Q35 68, 50 70 Q65 68, 68 52 Q60 60, 50 60 Q40 60, 32 52 Z" fill={hairFill} opacity="0.85" />}
+
+      {/* subtle earring hint for female */}
+      {gender === "female" && (
+        <>
+          <circle cx={50 - rx} cy="50" r="1.2" fill="#c084fc" />
+          <circle cx={50 + rx} cy="50" r="1.2" fill="#c084fc" />
+        </>
+      )}
 
       {/* facewear */}
       {(facewear === "white-mask" || facewear === "black-mask") && (
