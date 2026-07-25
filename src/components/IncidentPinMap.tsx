@@ -1,15 +1,8 @@
 import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
-
-export type IncidentType = "痴漢" | "盗撮" | "ストーカー" | "性暴力";
-
-export const TYPE_COLOR: Record<IncidentType, string> = {
-  痴漢: "#ef4444",
-  盗撮: "#a855f7",
-  ストーカー: "#f97316",
-  性暴力: "#3b82f6",
-};
+import { TYPE_COLOR, type IncidentType } from "@/lib/incident-types";
+export { TYPE_COLOR, type IncidentType };
 
 export type IncidentPin = {
   id: string;
