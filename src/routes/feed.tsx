@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { MapPin, Clock, ShieldAlert, Heart, Bookmark, Share2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { SuspectAvatar } from "@/components/SuspectAvatar";
-import { TYPE_COLOR } from "@/components/IncidentPinMap";
+import { TYPE_COLOR } from "@/lib/incident-types";
 import { FEED_POSTS } from "@/lib/incidents-data";
 
 export const Route = createFileRoute("/feed")({
