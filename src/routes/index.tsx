@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Search, Sparkles, FileBarChart2, MapPin, Info } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ClientOnly } from "@/components/ClientOnly";
-import { DangerMap } from "@/components/DangerMap";
 import type { DangerZone } from "@/components/DangerMap";
+const DangerMap = lazy(() => import("@/components/DangerMap").then((m) => ({ default: m.DangerMap })));
 import { SuspectAvatar } from "@/components/SuspectAvatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -41,14 +41,16 @@ function DangerAreaScreen() {
           <ClientOnly
             fallback={<div className="h-full w-full animate-pulse bg-muted" />}
           >
-            <DangerMap
-              zones={ZONES}
-              incidents={INCIDENT_DOTS}
-              onZoneClick={(z) => {
-                setSelected(z);
-                setSheetOpen(true);
-              }}
-            />
+            <Suspense fallback={<div className="h-full w-full animate-pulse bg-muted" />}>
+              <DangerMap
+                zones={ZONES}
+                incidents={INCIDENT_DOTS}
+                onZoneClick={(z) => {
+                  setSelected(z);
+                  setSheetOpen(true);
+                }}
+              />
+            </Suspense>
           </ClientOnly>
         </div>
 
