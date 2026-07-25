@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { X, MapPin, Clock, Users } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ClientOnly } from "@/components/ClientOnly";
-import { IncidentPinMap, TYPE_COLOR, type IncidentType } from "@/components/IncidentPinMap";
+import { TYPE_COLOR, type IncidentType } from "@/components/IncidentPinMap";
+const IncidentPinMap = lazy(() => import("@/components/IncidentPinMap").then((m) => ({ default: m.IncidentPinMap })));
 import { SuspectAvatar } from "@/components/SuspectAvatar";
 import { INCIDENT_PINS, SUSPECTS } from "@/lib/incidents-data";
 
@@ -29,7 +30,9 @@ function IncidentMapScreen() {
       <div className="relative h-screen w-full">
         <div className="absolute inset-0">
           <ClientOnly fallback={<div className="h-full w-full animate-pulse bg-muted" />}>
-            <IncidentPinMap pins={INCIDENT_PINS} onPinClick={(p) => setSelected(INCIDENT_PINS.find((x) => x.id === p.id) ?? null)} />
+            <Suspense fallback={<div className="h-full w-full animate-pulse bg-muted" />}>
+              <IncidentPinMap pins={INCIDENT_PINS} onPinClick={(p) => setSelected(INCIDENT_PINS.find((x) => x.id === p.id) ?? null)} />
+            </Suspense>
           </ClientOnly>
         </div>
 
