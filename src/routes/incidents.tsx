@@ -27,7 +27,7 @@ function IncidentMapScreen() {
 
   return (
     <AppShell fullBleed>
-      <div className="relative h-screen w-full">
+      <div className="relative w-full" style={{ height: "calc(100vh - 80px)" }}>
         <div className="absolute inset-0">
           <ClientOnly fallback={<div className="h-full w-full animate-pulse bg-muted" />}>
             <Suspense fallback={<div className="h-full w-full animate-pulse bg-muted" />}>
