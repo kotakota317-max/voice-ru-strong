@@ -35,7 +35,7 @@ function DangerAreaScreen() {
 
   return (
     <AppShell fullBleed>
-      <div className="relative h-screen w-full">
+      <div className="relative w-full" style={{ height: "calc(100vh - 80px)" }}>
         {/* Map layer */}
         <div className="absolute inset-0">
           <ClientOnly
