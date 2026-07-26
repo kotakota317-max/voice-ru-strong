@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Siren, VolumeX, Phone, ArrowLeft, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
+import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/emergency")({
   head: () => ({
@@ -29,7 +30,8 @@ function EmergencyScreen() {
   }, []);
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-gradient-to-b from-red-600 via-red-700 to-red-900 text-white">
+    <AppShell fullBleed>
+    <div className="flex min-h-screen w-full flex-col bg-gradient-to-b from-red-600 via-red-700 to-red-900 pb-24 text-white">
       <header className="flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
         <Link to="/" className="flex items-center gap-1 text-sm font-medium">
           <ArrowLeft className="h-4 w-4" /> 戻る
@@ -91,5 +93,6 @@ function EmergencyScreen() {
         </div>
       </div>
     </div>
+    </AppShell>
   );
 }
