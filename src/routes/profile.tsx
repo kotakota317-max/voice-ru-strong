@@ -15,9 +15,9 @@ export const Route = createFileRoute("/profile")({
 });
 
 const SECTIONS = [
-  { icon: FileText, label: "自分の投稿", meta: "3件" },
-  { icon: Bookmark, label: "保存したエリア", meta: "5件" },
-  { icon: Phone, label: "緊急連絡先", meta: "4件登録済" },
+  { icon: FileText, label: "自分の投稿", meta: "0件" },
+  { icon: Bookmark, label: "保存したエリア", meta: "0件" },
+  { icon: Phone, label: "緊急連絡先", meta: "未登録" },
   { icon: Bell, label: "通知設定", meta: "オン" },
   { icon: Lock, label: "プライバシー設定", meta: "匿名モード" },
   { icon: Info, label: "アプリについて", meta: "v1.0.0" },

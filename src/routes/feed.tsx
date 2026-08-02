@@ -25,6 +25,14 @@ function FeedScreen() {
           共有された被害報告です。コメント機能はありません。連帯と注意喚起のためのタイムラインです。
         </div>
 
+        {FEED_POSTS.length === 0 && (
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card py-16 text-center">
+            <ShieldAlert className="h-8 w-8 text-muted-foreground/50" />
+            <p className="mt-3 text-sm font-semibold">まだ投稿はありません</p>
+            <p className="mt-1 text-xs text-muted-foreground">No reports yet.</p>
+          </div>
+        )}
+
         {FEED_POSTS.map((p) => (
           <article key={p.id} className="rounded-3xl border border-border bg-card p-4 shadow-sm">
             <div className="flex items-start gap-3">
