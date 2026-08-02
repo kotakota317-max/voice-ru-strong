@@ -15,12 +15,7 @@ export const Route = createFileRoute("/emergency")({
   component: EmergencyScreen,
 });
 
-const CONTACTS = [
-  { label: "母", tel: "090-0000-0001" },
-  { label: "父", tel: "090-0000-0002" },
-  { label: "友達", tel: "090-0000-0003" },
-  { label: "恋人", tel: "090-0000-0004" },
-];
+const CONTACTS: { label: string; tel: string }[] = [];
 
 function EmergencyScreen() {
   const [pulse, setPulse] = useState(false);
@@ -61,6 +56,11 @@ function EmergencyScreen() {
         {/* Contacts */}
         <div className="mt-6 w-full">
           <div className="mb-2 text-xs font-semibold uppercase tracking-wider opacity-80">よく使う連絡先</div>
+          {CONTACTS.length === 0 && (
+            <div className="rounded-2xl bg-white/10 px-3 py-4 text-center text-xs ring-1 ring-white/20">
+              連絡先が登録されていません
+            </div>
+          )}
           <div className="grid grid-cols-4 gap-2">
             {CONTACTS.map((c) => (
               <a
