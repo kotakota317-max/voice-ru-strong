@@ -51,6 +51,15 @@ function IncidentMapScreen() {
           </div>
         </div>
 
+        {INCIDENT_PINS.length === 0 && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-28 z-[1000] px-3">
+            <div className="rounded-3xl bg-white/95 p-5 text-center shadow-2xl ring-1 ring-black/5 backdrop-blur">
+              <p className="text-sm font-semibold">まだ投稿はありません</p>
+              <p className="mt-1 text-xs text-muted-foreground">No reports yet.</p>
+            </div>
+          </div>
+        )}
+
         {selected && (
           <div className="absolute inset-x-0 bottom-24 z-[1000] px-3">
             <div className="rounded-3xl bg-white p-4 shadow-2xl ring-1 ring-black/5">
