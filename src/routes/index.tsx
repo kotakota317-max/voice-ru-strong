@@ -117,12 +117,15 @@ function DangerAreaScreen() {
               <div className="mt-4">
                 <div className="mb-2 text-xs font-semibold">最近報告された特徴</div>
                 <div className="flex gap-3">
-                  {SUSPECTS.map((s) => (
-                    <div key={s.id} className="flex flex-col items-center gap-1">
-                      <SuspectAvatar features={s.features} size={56} className="ring-2 ring-white shadow" />
-                      <span className="text-[10px] text-muted-foreground">{s.label}</span>
+                  {reports.slice(0, 4).map((r) => (
+                    <div key={r.id} className="flex flex-col items-center gap-1">
+                      <SuspectAvatar features={r.suspect_features} size={56} className="ring-2 ring-white shadow" />
+                      <span className="text-[10px] text-muted-foreground">{r.type}</span>
                     </div>
                   ))}
+                  {reports.length === 0 && (
+                    <span className="text-[11px] text-muted-foreground">まだ投稿はありません</span>
+                  )}
                 </div>
               </div>
 
