@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, MapPin, Send, Sparkles } from "lucide-react";
+import { CalendarIcon, Loader2, MapPin, Send, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { SuspectAvatar, type SuspectFeatures } from "@/components/SuspectAvatar";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { INCIDENT_PINS } from "@/lib/incidents-data";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
+import {
+  reportsQueryOptions,
+  createReport,
+  getCurrentPosition,
+  asIncidentType,
+} from "@/lib/reports";
 
 export const Route = createFileRoute("/report")({
   head: () => ({
@@ -150,6 +158,38 @@ function ReportScreen() {
     bag: "none",
   });
 
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { data: reports = [] } = useQuery(reportsQueryOptions);
+
+  const submitMutation = useMutation({
+    mutationFn: async () => {
+      const coords = await getCurrentPosition();
+      return createReport({
+        type: asIncidentType(type),
+        occurred_at: (date ?? new Date()).toISOString(),
+        place,
+        station,
+        line,
+        car_number: carNumber,
+        detail,
+        suspect_gender: gender,
+        suspect_features: features,
+        suspect_notes: notes,
+        lat: coords?.lat ?? null,
+        lng: coords?.lng ?? null,
+      });
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["reports"] });
+      toast.success("報告を送信しました");
+      navigate({ to: "/feed" });
+    },
+    onError: (err: Error) => {
+      toast.error("報告の送信に失敗しました", { description: err.message });
+    },
+  });
+
   const chosenCount = useMemo(
     () => Object.values(features).filter((v) => v && v !== "none").length,
     [features],
@@ -159,15 +199,15 @@ function ReportScreen() {
   // ones being entered. Only surfaces the pattern notice when it actually happens.
   const matchingReports = useMemo(() => {
     const keys = Object.keys(features) as (keyof SuspectFeatures)[];
-    return INCIDENT_PINS.filter((pin: any) => {
-      const other = pin.suspect?.features as SuspectFeatures | undefined;
+    return reports.filter((r) => {
+      const other = r.suspect_features as SuspectFeatures | undefined;
       if (!other) return false;
       const compared = keys.filter((k) => features[k] && features[k] !== "none");
       if (compared.length < 4) return false;
       const hits = compared.filter((k) => other[k] === features[k]).length;
       return hits / compared.length >= 0.7;
     }).length;
-  }, [features]);
+  }, [features, reports]);
 
   return (
     <AppShell title="報告する">
@@ -341,10 +381,28 @@ function ReportScreen() {
           </div>
         )}
 
-        <Button size="lg" className="h-14 w-full rounded-2xl text-base font-bold">
-          <Send className="mr-2 h-5 w-5" />
-          報告を送信
+        {submitMutation.isError && (
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+            報告の送信に失敗しました: {(submitMutation.error as Error).message}
+          </div>
+        )}
+
+        <Button
+          size="lg"
+          className="h-14 w-full rounded-2xl text-base font-bold"
+          disabled={submitMutation.isPending || !type}
+          onClick={() => submitMutation.mutate()}
+        >
+          {submitMutation.isPending ? (
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          ) : (
+            <Send className="mr-2 h-5 w-5" />
+          )}
+          {submitMutation.isPending ? "送信中…" : "報告を送信"}
         </Button>
+        {!type && (
+          <p className="-mt-3 text-center text-[11px] text-muted-foreground">被害種別を選択してください</p>
+        )}
       </div>
     </AppShell>
   );
