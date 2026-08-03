@@ -6,7 +6,14 @@ import { ClientOnly } from "@/components/ClientOnly";
 import { TYPE_COLOR, type IncidentType } from "@/lib/incident-types";
 const IncidentPinMap = lazy(() => import("@/components/IncidentPinMap").then((m) => ({ default: m.IncidentPinMap })));
 import { SuspectAvatar } from "@/components/SuspectAvatar";
-import { INCIDENT_PINS, SUSPECTS } from "@/lib/incidents-data";
+import { useQuery } from "@tanstack/react-query";
+import {
+  reportsQueryOptions,
+  asIncidentType,
+  formatOccurredAt,
+  describeSuspect,
+  type ReportRow,
+} from "@/lib/reports";
 
 export const Route = createFileRoute("/incidents")({
   head: () => ({
@@ -22,8 +29,35 @@ export const Route = createFileRoute("/incidents")({
 
 const TYPES: IncidentType[] = ["痴漢", "盗撮", "ストーカー", "性暴力"];
 
+type SelectedPin = {
+  id: string;
+  type: IncidentType;
+  pos: [number, number];
+  time: string;
+  place: string;
+  detail: string;
+  suspect: ReportRow["suspect_features"];
+  nearbyReports: number;
+};
+
 function IncidentMapScreen() {
-  const [selected, setSelected] = useState<(typeof INCIDENT_PINS)[number] | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { data: reports = [], isError, error } = useQuery(reportsQueryOptions);
+
+  const pins: SelectedPin[] = reports
+    .filter((r) => r.lat != null && r.lng != null)
+    .map((r) => ({
+      id: r.id,
+      type: asIncidentType(r.type),
+      pos: [r.lat as number, r.lng as number] as [number, number],
+      time: formatOccurredAt(r.occurred_at),
+      place: [r.place, r.station, r.line, r.car_number].filter(Boolean).join(" / ") || "場所未設定",
+      detail: describeSuspect(r.suspect_features, r.suspect_notes),
+      suspect: r.suspect_features,
+      nearbyReports: reports.length,
+    }));
+
+  const selected = pins.find((p) => p.id === selectedId) ?? null;
 
   return (
     <AppShell fullBleed>
@@ -31,7 +65,7 @@ function IncidentMapScreen() {
         <div className="absolute inset-0">
           <ClientOnly fallback={<div className="h-full w-full animate-pulse bg-muted" />}>
             <Suspense fallback={<div className="h-full w-full animate-pulse bg-muted" />}>
-              <IncidentPinMap pins={INCIDENT_PINS} onPinClick={(p) => setSelected(INCIDENT_PINS.find((x) => x.id === p.id) ?? null)} />
+              <IncidentPinMap pins={pins} onPinClick={(p) => setSelectedId(p.id)} />
             </Suspense>
           </ClientOnly>
         </div>
@@ -51,11 +85,13 @@ function IncidentMapScreen() {
           </div>
         </div>
 
-        {INCIDENT_PINS.length === 0 && (
+        {pins.length === 0 && (
           <div className="pointer-events-none absolute inset-x-0 bottom-28 z-[1000] px-3">
             <div className="rounded-3xl bg-white/95 p-5 text-center shadow-2xl ring-1 ring-black/5 backdrop-blur">
               <p className="text-sm font-semibold">まだ投稿はありません</p>
-              <p className="mt-1 text-xs text-muted-foreground">No reports yet.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {isError ? `読み込みに失敗しました: ${(error as Error).message}` : "No reports yet."}
+              </p>
             </div>
           </div>
         )}
@@ -63,12 +99,12 @@ function IncidentMapScreen() {
         {selected && (
           <div className="absolute inset-x-0 bottom-24 z-[1000] px-3">
             <div className="rounded-3xl bg-white p-4 shadow-2xl ring-1 ring-black/5">
-              <button onClick={() => setSelected(null)} className="absolute right-3 top-3 rounded-full bg-muted p-1">
+              <button onClick={() => setSelectedId(null)} className="absolute right-3 top-3 rounded-full bg-muted p-1">
                 <X className="h-3.5 w-3.5" />
               </button>
               <div className="flex items-start gap-3">
                 <SuspectAvatar
-                  features={SUSPECTS.find((s) => s.id === selected.suspectId)?.features ?? {}}
+                  features={selected.suspect}
                   size={72}
                   className="ring-2 ring-white shadow"
                 />

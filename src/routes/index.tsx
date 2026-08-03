@@ -8,7 +8,9 @@ const DangerMap = lazy(() => import("@/components/DangerMap").then((m) => ({ def
 import { SuspectAvatar } from "@/components/SuspectAvatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ZONES, INCIDENT_DOTS, SUSPECTS } from "@/lib/incidents-data";
+import { useQuery } from "@tanstack/react-query";
+import { ZONES } from "@/lib/incidents-data";
+import { reportsQueryOptions } from "@/lib/reports";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,6 +34,10 @@ const LEVEL_META: Record<DangerZone["level"], { label: string; color: string }> 
 function DangerAreaScreen() {
   const [selected, setSelected] = useState<DangerZone | null>(ZONES[0] ?? null);
   const [sheetOpen, setSheetOpen] = useState(true);
+  const { data: reports = [] } = useQuery(reportsQueryOptions);
+  const incidentDots = reports
+    .filter((r) => r.lat != null && r.lng != null)
+    .map((r) => ({ id: r.id, pos: [r.lat as number, r.lng as number] as [number, number] }));
 
   return (
     <AppShell fullBleed>
@@ -44,7 +50,7 @@ function DangerAreaScreen() {
             <Suspense fallback={<div className="h-full w-full animate-pulse bg-muted" />}>
               <DangerMap
                 zones={ZONES}
-                incidents={INCIDENT_DOTS}
+                incidents={incidentDots}
                 onZoneClick={(z) => {
                   setSelected(z);
                   setSheetOpen(true);
