@@ -1,9 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MapPin, Clock, ShieldAlert, Heart, Bookmark, Share2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { SuspectAvatar } from "@/components/SuspectAvatar";
 import { TYPE_COLOR } from "@/lib/incident-types";
-import { FEED_POSTS } from "@/lib/incidents-data";
+import {
+  reportsQueryOptions,
+  asIncidentType,
+  formatOccurredAt,
+  describeSuspect,
+} from "@/lib/reports";
 
 export const Route = createFileRoute("/feed")({
   head: () => ({
@@ -18,6 +24,8 @@ export const Route = createFileRoute("/feed")({
 });
 
 function FeedScreen() {
+  const { data: reports = [], isLoading, isError, error } = useQuery(reportsQueryOptions);
+
   return (
     <AppShell title="フィード">
       <div className="space-y-3 p-3">
@@ -25,7 +33,19 @@ function FeedScreen() {
           共有された被害報告です。コメント機能はありません。連帯と注意喚起のためのタイムラインです。
         </div>
 
-        {FEED_POSTS.length === 0 && (
+        {isError && (
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+            投稿の読み込みに失敗しました: {(error as Error).message}
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="rounded-3xl border border-border bg-card py-12 text-center text-xs text-muted-foreground">
+            読み込み中…
+          </div>
+        )}
+
+        {!isLoading && !isError && reports.length === 0 && (
           <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card py-16 text-center">
             <ShieldAlert className="h-8 w-8 text-muted-foreground/50" />
             <p className="mt-3 text-sm font-semibold">まだ投稿はありません</p>
@@ -33,7 +53,16 @@ function FeedScreen() {
           </div>
         )}
 
-        {FEED_POSTS.map((p) => (
+        {reports.map((r) => {
+          const p = {
+            id: r.id,
+            type: asIncidentType(r.type),
+            time: formatOccurredAt(r.occurred_at),
+            place: [r.place, r.station, r.line, r.car_number].filter(Boolean).join(" / ") || "場所未設定",
+            detail: r.detail || "詳細は記載されていません。",
+            suspect: { label: describeSuspect(r.suspect_features, r.suspect_notes), features: r.suspect_features },
+          };
+          return (
           <article key={p.id} className="rounded-3xl border border-border bg-card p-4 shadow-sm">
             <div className="flex items-start gap-3">
               <div className="relative">
@@ -83,7 +112,8 @@ function FeedScreen() {
               </button>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
     </AppShell>
   );
