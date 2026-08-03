@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { INCIDENT_PINS } from "@/lib/incidents-data";
 
 export const Route = createFileRoute("/report")({
   head: () => ({
@@ -153,6 +154,20 @@ function ReportScreen() {
     () => Object.values(features).filter((v) => v && v !== "none").length,
     [features],
   );
+
+  // Count existing reports whose suspect features overlap strongly with the
+  // ones being entered. Only surfaces the pattern notice when it actually happens.
+  const matchingReports = useMemo(() => {
+    const keys = Object.keys(features) as (keyof SuspectFeatures)[];
+    return INCIDENT_PINS.filter((pin: any) => {
+      const other = pin.suspect?.features as SuspectFeatures | undefined;
+      if (!other) return false;
+      const compared = keys.filter((k) => features[k] && features[k] !== "none");
+      if (compared.length < 4) return false;
+      const hits = compared.filter((k) => other[k] === features[k]).length;
+      return hits / compared.length >= 0.7;
+    }).length;
+  }, [features]);
 
   return (
     <AppShell title="報告する">
@@ -312,15 +327,19 @@ function ReportScreen() {
           </div>
         </div>
 
-        {/* Pattern recognition notice */}
-        <div className="flex items-start gap-2 rounded-2xl border border-orange-200 bg-orange-50 p-3 text-xs text-orange-900">
-          <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
-          <p className="leading-relaxed">
-            <span className="font-bold">この特徴に一致する報告が近くで複数確認されています。</span>
-            <br />
-            同一人物による連続犯行の可能性があります。
-          </p>
-        </div>
+        {/* Pattern recognition notice — only when matching reports actually exist */}
+        {matchingReports >= 2 && (
+          <div className="flex items-start gap-2 rounded-2xl border border-orange-200 bg-orange-50 p-3 text-xs text-orange-900">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
+            <p className="leading-relaxed">
+              <span className="font-bold">
+                この特徴に一致する報告が近くで{matchingReports}件確認されています。
+              </span>
+              <br />
+              同一人物による連続犯行の可能性があります。
+            </p>
+          </div>
+        )}
 
         <Button size="lg" className="h-14 w-full rounded-2xl text-base font-bold">
           <Send className="mr-2 h-5 w-5" />
