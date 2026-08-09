@@ -2,13 +2,15 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { FileText, Map, ShieldAlert, Newspaper, User, Siren } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { SpotlightTour } from "@/components/onboarding/SpotlightTour";
+import { APP_TOUR } from "@/components/onboarding/tours";
 
 const TABS = [
-  { to: "/report", label: "報告する", icon: FileText },
-  { to: "/incidents", label: "被害マップ", icon: Map },
-  { to: "/", label: "AI危険エリア", icon: ShieldAlert },
-  { to: "/feed", label: "フィード", icon: Newspaper },
-  { to: "/profile", label: "プロフィール", icon: User },
+  { to: "/report", label: "報告する", icon: FileText, tour: "nav-report" },
+  { to: "/incidents", label: "被害マップ", icon: Map, tour: "nav-map" },
+  { to: "/", label: "AI危険エリア", icon: ShieldAlert, tour: "nav-home" },
+  { to: "/feed", label: "フィード", icon: Newspaper, tour: "nav-feed" },
+  { to: "/profile", label: "プロフィール", icon: User, tour: "nav-profile" },
 ] as const;
 
 export function AppShell({
@@ -51,12 +53,13 @@ export function AppShell({
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-border/60 bg-background/95 backdrop-blur">
         <ul className="grid grid-cols-5">
-          {TABS.map(({ to, label, icon: Icon }) => {
+          {TABS.map(({ to, label, icon: Icon, tour }) => {
             const active = pathname === to;
             return (
               <li key={to}>
                 <Link
                   to={to}
+                  data-tour={tour}
                   className={cn(
                     "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium",
                     active ? "text-primary" : "text-muted-foreground",
@@ -71,6 +74,8 @@ export function AppShell({
         </ul>
         <div className="h-[env(safe-area-inset-bottom)]" />
       </nav>
+
+      <SpotlightTour id="app" steps={APP_TOUR} finalLabel="はじめる" />
     </div>
   );
 }

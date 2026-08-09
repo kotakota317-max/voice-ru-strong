@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { MapPin, Clock, ShieldAlert, Heart, Bookmark, Share2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
+import { SpotlightTour } from "@/components/onboarding/SpotlightTour";
+import { FEED_TOUR } from "@/components/onboarding/tours";
 import { SuspectAvatar } from "@/components/SuspectAvatar";
 import { TYPE_COLOR } from "@/lib/incident-types";
 import {
@@ -28,7 +30,7 @@ function FeedScreen() {
 
   return (
     <AppShell title="フィード">
-      <div className="space-y-3 p-3">
+      <div className="space-y-3 p-3" data-tour="feed-list">
         <div className="rounded-2xl bg-primary/5 p-3 text-xs text-foreground/80">
           共有された被害報告です。コメント機能はありません。連帯と注意喚起のためのタイムラインです。
         </div>
@@ -53,7 +55,7 @@ function FeedScreen() {
           </div>
         )}
 
-        {reports.map((r) => {
+        {reports.map((r, idx) => {
           const p = {
             id: r.id,
             type: asIncidentType(r.type),
@@ -63,7 +65,11 @@ function FeedScreen() {
             suspect: { label: describeSuspect(r.suspect_features, r.suspect_notes), features: r.suspect_features },
           };
           return (
-          <article key={p.id} className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <article
+            key={p.id}
+            data-tour={idx === 0 ? "feed-post" : undefined}
+            className="rounded-3xl border border-border bg-card p-4 shadow-sm"
+          >
             <div className="flex items-start gap-3">
               <div className="relative">
                 <SuspectAvatar features={p.suspect.features} size={56} className="ring-2 ring-white shadow" />
@@ -115,6 +121,7 @@ function FeedScreen() {
           );
         })}
       </div>
+      <SpotlightTour id="feed" steps={FEED_TOUR} finalLabel="使ってみる" />
     </AppShell>
   );
 }

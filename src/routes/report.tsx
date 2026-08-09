@@ -3,6 +3,8 @@ import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Loader2, MapPin, Send, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { SpotlightTour } from "@/components/onboarding/SpotlightTour";
+import { REPORT_TOUR } from "@/components/onboarding/tours";
 import { SuspectAvatar, type SuspectFeatures } from "@/components/SuspectAvatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -217,7 +219,7 @@ function ReportScreen() {
         </p>
 
         {/* Type */}
-        <div className="space-y-1.5">
+        <div className="space-y-1.5" data-tour="report-type">
           <Label>被害種別</Label>
           <Select value={type} onValueChange={setType}>
             <SelectTrigger>
@@ -252,7 +254,7 @@ function ReportScreen() {
         </div>
 
         {/* Place */}
-        <div className="space-y-1.5">
+        <div className="space-y-1.5" data-tour="report-location">
           <Label>場所</Label>
           <div className="relative">
             <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -312,7 +314,7 @@ function ReportScreen() {
         </div>
 
         {/* Suspect builder */}
-        <div className="rounded-3xl border border-border bg-card p-4">
+        <div className="rounded-3xl border border-border bg-card p-4" data-tour="report-suspect">
           <div className="flex items-start justify-between">
             <div>
               <div className="text-sm font-bold">加害者の特徴</div>
@@ -389,6 +391,7 @@ function ReportScreen() {
 
         <Button
           size="lg"
+          data-tour="report-submit"
           className="h-14 w-full rounded-2xl text-base font-bold"
           disabled={submitMutation.isPending || !type}
           onClick={() => submitMutation.mutate()}
@@ -404,6 +407,7 @@ function ReportScreen() {
           <p className="-mt-3 text-center text-[11px] text-muted-foreground">被害種別を選択してください</p>
         )}
       </div>
+      <SpotlightTour id="report" steps={REPORT_TOUR} finalLabel="使ってみる" />
     </AppShell>
   );
 }
