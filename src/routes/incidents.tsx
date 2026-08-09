@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense, useState } from "react";
 import { X, MapPin, Clock, Users } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { SpotlightTour } from "@/components/onboarding/SpotlightTour";
+import { MAP_TOUR } from "@/components/onboarding/tours";
 import { ClientOnly } from "@/components/ClientOnly";
 import { TYPE_COLOR, type IncidentType } from "@/lib/incident-types";
 const IncidentPinMap = lazy(() => import("@/components/IncidentPinMap").then((m) => ({ default: m.IncidentPinMap })));
@@ -62,7 +64,7 @@ function IncidentMapScreen() {
   return (
     <AppShell fullBleed>
       <div className="relative w-full" style={{ height: "calc(100vh - 80px)" }}>
-        <div className="absolute inset-0">
+        <div className="absolute inset-0" data-tour="map-canvas">
           <ClientOnly fallback={<div className="h-full w-full animate-pulse bg-muted" />}>
             <Suspense fallback={<div className="h-full w-full animate-pulse bg-muted" />}>
               <IncidentPinMap pins={pins} onPinClick={(p) => setSelectedId(p.id)} />
@@ -72,7 +74,10 @@ function IncidentMapScreen() {
 
         {/* Legend */}
         <div className="pointer-events-none absolute inset-x-0 top-0 z-[1000] px-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-          <div className="pointer-events-auto rounded-2xl bg-white/95 p-2.5 shadow-lg ring-1 ring-black/5 backdrop-blur">
+          <div
+            data-tour="map-legend"
+            className="pointer-events-auto rounded-2xl bg-white/95 p-2.5 shadow-lg ring-1 ring-black/5 backdrop-blur"
+          >
             <div className="text-[11px] font-semibold text-muted-foreground">被害種別</div>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {TYPES.map((t) => (
@@ -137,6 +142,7 @@ function IncidentMapScreen() {
           </div>
         )}
       </div>
+      <SpotlightTour id="map" steps={MAP_TOUR} finalLabel="使ってみる" />
     </AppShell>
   );
 }
