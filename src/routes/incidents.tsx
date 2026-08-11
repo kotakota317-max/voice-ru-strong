@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { X, MapPin, Clock, Users } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { SpotlightTour } from "@/components/onboarding/SpotlightTour";
@@ -14,6 +14,7 @@ import {
   asIncidentType,
   formatOccurredAt,
   describeSuspect,
+  resolveIncidentLocation,
   type ReportRow,
 } from "@/lib/reports";
 
@@ -44,20 +45,66 @@ type SelectedPin = {
 
 function IncidentMapScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [resolvedCoords, setResolvedCoords] = useState<Record<string, [number, number]>>({});
   const { data: reports = [], isError, error } = useQuery(reportsQueryOptions);
 
+  useEffect(() => {
+    const unresolved = reports.filter(
+      (r) =>
+        (r.lat == null || r.lng == null) &&
+        [r.place, r.station, r.line].some(Boolean) &&
+        !(r.id in resolvedCoords),
+    );
+
+    if (unresolved.length === 0) return;
+
+    let canceled = false;
+
+    (async () => {
+      const resolved = await Promise.all(
+        unresolved.map(async (r) => {
+          const query = [r.place, r.station, r.line].filter(Boolean).join(" ").trim();
+          if (!query) return null;
+          const coords = await resolveIncidentLocation(query);
+          if (coords.lat == null || coords.lng == null) return null;
+          return { id: r.id, coords: [coords.lat, coords.lng] as [number, number] };
+        }),
+      );
+
+      if (canceled) return;
+
+      setResolvedCoords((current) => {
+        const next = { ...current };
+        resolved.forEach((item) => {
+          if (item) next[item.id] = item.coords;
+        });
+        return next;
+      });
+    })();
+
+    return () => {
+      canceled = true;
+    };
+  }, [reports, resolvedCoords]);
+
   const pins: SelectedPin[] = reports
-    .filter((r) => r.lat != null && r.lng != null)
-    .map((r) => ({
-      id: r.id,
-      type: asIncidentType(r.type),
-      pos: [r.lat as number, r.lng as number] as [number, number],
-      time: formatOccurredAt(r.occurred_at),
-      place: [r.place, r.station, r.line, r.car_number].filter(Boolean).join(" / ") || "場所未設定",
-      detail: describeSuspect(r.suspect_features, r.suspect_notes),
-      suspect: r.suspect_features,
-      nearbyReports: reports.length,
-    }));
+    .map((r) => {
+      const resolved = resolvedCoords[r.id];
+      const lat = r.lat ?? resolved?.[0];
+      const lng = r.lng ?? resolved?.[1];
+      if (lat == null || lng == null) return null;
+      return {
+        id: r.id,
+        type: asIncidentType(r.type),
+        pos: [lat, lng] as [number, number],
+        time: formatOccurredAt(r.occurred_at),
+        place: [r.place, r.station, r.line, r.car_number].filter(Boolean).join(" / ") || "場所未設定",
+        detail: describeSuspect(r.suspect_features, r.suspect_notes),
+        suspect: r.suspect_features,
+        nearbyReports: reports.length,
+      };
+    })
+    .filter((p): p is SelectedPin => Boolean(p));
 
   const selected = pins.find((p) => p.id === selectedId) ?? null;
 

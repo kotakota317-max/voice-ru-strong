@@ -78,6 +78,35 @@ export function getCurrentPosition(): Promise<{ lat: number; lng: number } | nul
   });
 }
 
+export async function resolveIncidentLocation(query: string): Promise<{ lat: number | null; lng: number | null }> {
+  if (!query || typeof fetch === "undefined") {
+    return { lat: null, lng: null };
+  }
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=jp&q=${encodeURIComponent(query)}`;
+    const response = await fetch(url, {
+      headers: {
+        "Accept-Language": "ja",
+      },
+    });
+    if (!response.ok) return { lat: null, lng: null };
+
+    const results = (await response.json()) as Array<{ lat: string; lon: string }>;
+    if (!results?.length) return { lat: null, lng: null };
+
+    const lat = Number(results[0].lat);
+    const lng = Number(results[0].lon);
+
+    return {
+      lat: Number.isFinite(lat) ? lat : null,
+      lng: Number.isFinite(lng) ? lng : null,
+    };
+  } catch {
+    return { lat: null, lng: null };
+  }
+}
+
 export function formatOccurredAt(iso: string): string {
   const d = new Date(iso);
   return new Intl.DateTimeFormat("ja-JP", {

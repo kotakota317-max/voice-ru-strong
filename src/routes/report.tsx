@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import {
   reportsQueryOptions,
   createReport,
-  getCurrentPosition,
+  resolveIncidentLocation,
   asIncidentType,
 } from "@/lib/reports";
 
@@ -166,7 +166,8 @@ function ReportScreen() {
 
   const submitMutation = useMutation({
     mutationFn: async () => {
-      const coords = await getCurrentPosition();
+      const locationQuery = [place, station, line].filter(Boolean).join(" ").trim();
+      const coords = await resolveIncidentLocation(locationQuery);
       return createReport({
         type: asIncidentType(type),
         occurred_at: (date ?? new Date()).toISOString(),
@@ -178,8 +179,8 @@ function ReportScreen() {
         suspect_gender: gender,
         suspect_features: features,
         suspect_notes: notes,
-        lat: coords?.lat ?? null,
-        lng: coords?.lng ?? null,
+        lat: coords.lat,
+        lng: coords.lng,
       });
     },
     onSuccess: async () => {
